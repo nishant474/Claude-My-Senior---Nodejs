@@ -30,7 +30,7 @@ export class AuthService {
   async register(data: RegisterInput) {
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email: data?.email },
+      where: { email: data.email },
     });
 
     if (existingUser) {

@@ -62,7 +62,7 @@ const errorHandler = (
   const appErr = err as AppError;
   res.status(appErr.statusCode || 500).json({
     success: false,
-    error: err.message || "Internal Server Error",
+    error: appErr.message || "Internal Server Error",
   });
 };
 
