@@ -5,6 +5,7 @@ import helmet from "helmet";
 import cors from "cors";
 import { env } from "./config/env";
 import morgan from "morgan";
+import authRoutes from "./routes/auth.routes";
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.get("/health", (req: Request, res: Response) => {
 });
 
 // Api Routes
+app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 
 // 404 Handler

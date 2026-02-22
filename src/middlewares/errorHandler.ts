@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { Prisma } from "@prisma/client";
+import { ZodError } from "zod";
 
 interface AppError extends Error {
   statusCode?: number;
@@ -7,12 +8,24 @@ interface AppError extends Error {
 }
 
 const errorHandler = (
-  err: AppError,
+  err: AppError | ZodError,
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   console.error(err.stack);
+
+  // Zod validation errors
+  if (err instanceof ZodError) {
+    return res.status(400).json({
+      success: false,
+      error: "Validation Error",
+      details: err.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      })),
+    });
+  }
 
   // Prisma errors (unique constraint, not found, etc.)
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -30,15 +43,6 @@ const errorHandler = (
     }
   }
 
-  // Validation errors
-  if (err.name === "ValidationError") {
-    return res.status(400).json({
-      success: false,
-      error: "Validation Error",
-      details: err.details,
-    });
-  }
-
   // JWT errors
   if (err.name === "JsonWebTokenError") {
     return res.status(401).json({
@@ -47,8 +51,16 @@ const errorHandler = (
     });
   }
 
+  if (err.name === "TokenExpiredError") {
+    return res.status(401).json({
+      success: false,
+      error: "Token expired",
+    });
+  }
+
   // Default error
-  res.status(err.statusCode || 500).json({
+  const appErr = err as AppError;
+  res.status(appErr.statusCode || 500).json({
     success: false,
     error: err.message || "Internal Server Error",
   });
