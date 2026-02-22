@@ -5,7 +5,7 @@ export const requireRole = (...allowRoles: Role[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({
-        success: true,
+        success: false,
         error: "Authentication Required",
       });
     }
